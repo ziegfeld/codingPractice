@@ -1,3 +1,52 @@
+// you can use includes, for example:
+#include <algorithm>
+
+using namespace std;
+// you can write to stdout for debugging purposes, e.g.
+// cout << "this is a debug message" << endl;
+
+int solution(vector<int> &A) {
+    // Implement your solution here
+    sort(A.begin(), A.end());
+    const int n = A.size();
+    if (n<=1) {
+        return (A[0] == 1) ? 2 : 1;
+    }
+    //sort;
+    // find smallest positive integer
+    if (A[n-1] <= 0) return 1;
+    int left = 0;
+    while (A[left] <= 0) {
+        left = (left + n) / 2;
+        if (left == n - 1) {
+            break;
+        }
+        // left 0 n=2 1 n=3 -> 1; 1 + 3 /2 = 2; 
+        //left 1 n = 2 1 + 2 /2 = 1
+        // 0 2 + 1 = 3 , /2=1; 1, 1 
+    }
+    int min_pos = 1;
+    if (A[left] > 1) {
+        return 1;
+    }
+    for (int i = left; i < n; i++) {
+        if (A[i] > min_pos + 1) {
+            break;
+        } else if (A[i] != min_pos) {
+            min_pos = A[i]; // or ++
+        }
+    }
+    return min_pos+1;
+
+    
+    // start from there, if an integter+1 is not present, print;
+    // otherwise print lastest number + 1
+}
+
+
+// above my solution
+////
+//below from online source
 int solution(vector<int> &A) {
     vector<bool> hashTable(A.size()); // holds information about if an integer has been found in the given vector
     
