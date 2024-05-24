@@ -1,6 +1,4 @@
-// you can use includes, for example:
 #include <algorithm>
-
 using namespace std;
 // you can write to stdout for debugging purposes, e.g.
 // cout << "this is a debug message" << endl;
@@ -21,14 +19,12 @@ int solution(vector<int> &A) {
         if (left == n - 1) {
             break;
         }
-        // left 0 n=2 1 n=3 -> 1; 1 + 3 /2 = 2; 
-        //left 1 n = 2 1 + 2 /2 = 1
-        // 0 2 + 1 = 3 , /2=1; 1, 1 
+    }
+    // pay attention to corner cases
+    if (left == n - 1) {
+        return (A[left] == 1) ? 2 : 1;
     }
     int min_pos = 1;
-    if (A[left] > 1) {
-        return 1;
-    }
     for (int i = left; i < n; i++) {
         if (A[i] > min_pos + 1) {
             break;
