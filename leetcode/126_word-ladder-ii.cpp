@@ -4,6 +4,8 @@
 // get cost/adjacency, then DFS with heuristic. recursive but has reuse for reducing stack mem
 // passed 31/36 and 32th meeting time limit exceeded.
 
+//next step for optimization:
+// sort the wordList or change the order to choose the next word to try in dfs - the one with min dist to beginWord and endWrod should be the first to try
 using namespace std;
 class Solution {
     int dist(string a, string b, int len) {
