@@ -65,3 +65,84 @@ class HashTable(kvpair) {
     raise KeyError('Key not found!'); // find standard c++ error code for this!!
   }
 }
+
+// another apprach, with resizeTable, with template.
+// https://medium.com/@mark.winter/implementing-a-hash-table-in-c-14-for-practice-9c4ad6b7cc3e
+
+template <typename T, typename U>
+class BetterHashMap {
+public:
+    BetterHashMap(std::size_t size=100) : count_(0), resize_limit_(10) {
+        table_.reserve(size);
+        for (int i = 0; i < size; i++)
+            table_.emplace_back();
+    }
+    
+    U get(T key) const {
+        auto slot = table_[getSlot(key)];
+        return slot.second;
+    }
+    
+    void put(T key, U value) {
+        auto& slot = table_[getSlot(key)];
+        
+        // Found a slot for this key so update its value
+        if (slot.first) {
+            slot.second = value;
+            return;
+        }
+        
+        // Resize if table is almost full
+        if (table_.size() - count_ < resize_limit_) {
+            resizeTable();
+            auto& slot = table_[getSlot(key)];
+            slot.first = key;
+            slot.second = value;
+            count_++;
+            return;
+        }
+        
+        // Found empty slot so set key and value
+        slot.first = key;
+        slot.second = value;
+        count_++;
+    }
+    
+private:
+    std::vector<std::pair<T, U>> table_;
+    std::size_t count_;
+    uint8_t resize_limit_;
+    
+    std::size_t getIndex(T& key) const {
+        std::size_t hash = std::hash<T>{}(key);
+        return hash % table_.size();
+    }
+    
+    auto getSlot(T& key) const {
+        auto index = getIndex(key);
+        
+        while (table_[index].first != 0 && table_[index].first != key)
+            index = (index + 1) % table_.capacity();
+
+        return index;
+    }
+    
+    void resizeTable() {
+        // Double our capacity
+        table_.reserve(table_.capacity() * 2);
+        
+        // Add new empty key-pair values for all the new space
+        for (int i = 0; i < (table_.capacity() / 2) + resize_limit_; i++)
+            table_.emplace_back();
+        
+        // Reset all the keys
+        for (auto& slot : table_) {
+            if (slot.first) {
+                T first = slot.first;
+                U second = slot.second;
+                slot = std::pair<T, U>();
+                put(first, second);
+            }
+        }
+    }
+};
