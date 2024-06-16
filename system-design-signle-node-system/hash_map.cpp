@@ -1,3 +1,5 @@
+// 1st pass for system design;
+// below later - for leet-code with dynamic reserve and resize and hash collision implemented with linear probing instead of linked-list of the same index slot
 // with reference to https://github.com/donnemartin/system-design-primer/blob/master/solutions/object_oriented_design/hash_table/hash_map.ipynb
 /*
   Constraints and assumptions
@@ -70,11 +72,8 @@ class HashTable(kvpair) {
 // via https://medium.com/@mark.winter/implementing-a-hash-table-in-c-14-for-practice-9c4ad6b7cc3e
 // added comments, used API from https://leetcode.com/problems/design-hashmap/ and removed template and typename T, U (using T=U=int)
 // note it used std::make_pair<>(-1, -1) as default invalid key (key=0 is valid in the test description) - but this can't pass that leetcode online judge, and is not intended to do so.
-
 using namespace std;
-
-// template <typename T, typename U>using namespace std;
-
+// template <typename T, typename U>
 class MyHashMap {
 
 private:
@@ -88,7 +87,7 @@ private:
         return hash % m_table.size();
     }
 
-    // this implement doesn't guarentee for corner case where the key is NOT
+    // this implement doesn't raise error for corner case where the key is NOT
     // even in hashmap.
     auto getSlot(int& key) const {
         size_t index = getIndex(key);
@@ -102,6 +101,7 @@ private:
             // capacity total number of elements it CAN HOLD. not size() -
             // current number of elements
         }
+        // cout << "getSlot result index=" << index << endl;
         return index;
     }
 
@@ -118,8 +118,8 @@ private:
             if (slot.first != -1) {
                 auto first = slot.first;
                 auto second = slot.second;
-                slot = std::pair<int, int>{}; // reset
-                put(first, second);           // re-insert
+                slot = std::pair<int, int>{-1, -1}; // reset
+                put(first, second);                 // re-insert
             }
         }
     }
@@ -143,6 +143,8 @@ public:
 
     void put(int key, int value) {
         auto& slot = m_table[getSlot(key)];
+        // cout << "for put(" << key << ", " << value << ") - found slot (k,v)=("
+        //      << slot.first << ", " << slot.second << ")." << endl;
 
         // found a slot for this key, just update value
         if (slot.first != -1) {
@@ -153,6 +155,7 @@ public:
         // resize if almost full
         if (m_table.size() - m_count < m_resize_limit) {
             resizeTable();
+            // redo this indexing (find vacant slot):
             auto& slot = m_table[getSlot(key)];
             slot.first = key;
             slot.second = value;
@@ -166,9 +169,12 @@ public:
     }
 
     void remove(int key) {
-        auto slot = m_table[getSlot(key)];
+        auto& slot = m_table[getSlot(key)];
+        // cout << "for remove(key=" << key << ") - found slot (k,v)=("
+        //      << slot.first << ", " << slot.second << ")." << endl;
+
         slot.first = -1;
-        slot.second = 0;
+        slot.second = -1;
         --m_count;
         return;
     }
