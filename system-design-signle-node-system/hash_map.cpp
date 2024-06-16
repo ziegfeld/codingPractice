@@ -66,83 +66,118 @@ class HashTable(kvpair) {
   }
 }
 
-// another apprach, with resizeTable, with template.
-// https://medium.com/@mark.winter/implementing-a-hash-table-in-c-14-for-practice-9c4ad6b7cc3e
+// another apprach, with resizeTable, with template. 
+// via https://medium.com/@mark.winter/implementing-a-hash-table-in-c-14-for-practice-9c4ad6b7cc3e
+// added comments, used API from https://leetcode.com/problems/design-hashmap/ and removed template and typename T, U (using T=U=int)
+// note it used std::make_pair<>(-1, -1) as default invalid key (key=0 is valid in the test description) - but this can't pass that leetcode online judge, and is not intended to do so.
 
-template <typename T, typename U>
-class BetterHashMap {
-public:
-    BetterHashMap(std::size_t size=100) : count_(0), resize_limit_(10) {
-        table_.reserve(size);
-        for (int i = 0; i < size; i++)
-            table_.emplace_back();
-    }
-    
-    U get(T key) const {
-        auto slot = table_[getSlot(key)];
-        return slot.second;
-    }
-    
-    void put(T key, U value) {
-        auto& slot = table_[getSlot(key)];
-        
-        // Found a slot for this key so update its value
-        if (slot.first) {
-            slot.second = value;
-            return;
-        }
-        
-        // Resize if table is almost full
-        if (table_.size() - count_ < resize_limit_) {
-            resizeTable();
-            auto& slot = table_[getSlot(key)];
-            slot.first = key;
-            slot.second = value;
-            count_++;
-            return;
-        }
-        
-        // Found empty slot so set key and value
-        slot.first = key;
-        slot.second = value;
-        count_++;
-    }
-    
+using namespace std;
+
+// template <typename T, typename U>using namespace std;
+
+class MyHashMap {
+
 private:
-    std::vector<std::pair<T, U>> table_;
-    std::size_t count_;
-    uint8_t resize_limit_;
-    
-    std::size_t getIndex(T& key) const {
-        std::size_t hash = std::hash<T>{}(key);
-        return hash % table_.size();
+    vector<pair<int, int>> m_table;
+    size_t m_count;
+    uint8_t m_resize_limit;
+    size_t getIndex(int& key) const {
+        size_t hash = std::hash<int>{}(key);
+        // alternative grammar:
+        //    std::hash<int> int_hash; size_t has = int_hash(key);
+        return hash % m_table.size();
     }
-    
-    auto getSlot(T& key) const {
-        auto index = getIndex(key);
-        
-        while (table_[index].first != 0 && table_[index].first != key)
-            index = (index + 1) % table_.capacity();
 
+    // this implement doesn't guarentee for corner case where the key is NOT
+    // even in hashmap.
+    auto getSlot(int& key) const {
+        size_t index = getIndex(key);
+
+        // hash collision: "open addressing with linear probing"; instead of
+        // linked-list for the same index slot. "This hopefully meant that with
+        // the contiguous memory of a vector, and the locality of values using
+        // linear probing, the data would often be found in the cpu’s cache."
+        while (m_table[index].first != -1 && m_table[index].first != key) {
+            index = (index + 1) % m_table.capacity();
+            // capacity total number of elements it CAN HOLD. not size() -
+            // current number of elements
+        }
         return index;
     }
-    
+
     void resizeTable() {
-        // Double our capacity
-        table_.reserve(table_.capacity() * 2);
-        
+        // double capacity
+        m_table.reserve(m_table.capacity() * 2);
         // Add new empty key-pair values for all the new space
-        for (int i = 0; i < (table_.capacity() / 2) + resize_limit_; i++)
-            table_.emplace_back();
-        
-        // Reset all the keys
-        for (auto& slot : table_) {
-            if (slot.first) {
-                T first = slot.first;
-                U second = slot.second;
-                slot = std::pair<T, U>();
-                put(first, second);
+        for (int i = 0; i < m_table.capacity() / 2 + m_resize_limit; ++i) {
+            m_table.emplace_back(std::pair<int, int>(-1, -1));
+        }
+
+        // reset all the keys
+        for (auto& slot : m_table) {
+            if (slot.first != -1) {
+                auto first = slot.first;
+                auto second = slot.second;
+                slot = std::pair<int, int>{}; // reset
+                put(first, second);           // re-insert
             }
         }
     }
+
+public:
+    MyHashMap(size_t size = 100) : m_count(0), m_resize_limit(10) {
+        m_table.reserve(size);
+        // why the below, as from
+        // https://medium.com/@mark.winter/implementing-a-hash-table-in-c-14-for-practice-9c4ad6b7cc3e
+        // : Add new empty key-pair values for all the new space
+        for (int i = 0; i < size; ++i) {
+            m_table.emplace_back(std::pair<int, int>(-1, -1));
+        }
+        // LZ: all the above reserve() and emplace_back(), why not resize() ??
+    }
+
+    int get(int key) {
+        auto slot = m_table[getSlot(key)];
+        return slot.second;
+    }
+
+    void put(int key, int value) {
+        auto& slot = m_table[getSlot(key)];
+
+        // found a slot for this key, just update value
+        if (slot.first != -1) {
+            slot.second = value;
+            return;
+        }
+
+        // resize if almost full
+        if (m_table.size() - m_count < m_resize_limit) {
+            resizeTable();
+            auto& slot = m_table[getSlot(key)];
+            slot.first = key;
+            slot.second = value;
+            ++m_count;
+            return;
+        }
+        // found empty slot.
+        slot.first = key;
+        slot.second = value;
+        ++m_count;
+    }
+
+    void remove(int key) {
+        auto slot = m_table[getSlot(key)];
+        slot.first = -1;
+        slot.second = 0;
+        --m_count;
+        return;
+    }
 };
+
+/**
+ * Your MyHashMap object will be instantiated and called as such:
+ * MyHashMap* obj = new MyHashMap();
+ * obj->put(key,value);
+ * int param_2 = obj->get(key);
+ * obj->remove(key);
+ */
