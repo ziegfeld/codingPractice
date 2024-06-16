@@ -154,7 +154,7 @@ public:
         if (vehicle == nullptr) {
             return false;
         }
-        return vehicle->can_fit_in_spot(shared_from_this());
+        return vehicle->can_fit_in_spot(this); // LZ make sure this is a shared_ptr or can be cast to one
     }
 
     void park_vehicle(std::shared_ptr<Vehicle> vehicle) {
