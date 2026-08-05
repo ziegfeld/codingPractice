@@ -1,5 +1,38 @@
-#include <stack>
+//https://leetcode.com/problems/daily-temperatures/
+
+// #include <stack>
 class Solution {
+
+// still better: no need for stack optimization: AI helped
+//12ms though not 11ms. mem similar
+
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& temperatures) {
+        int n = temperatures.size();
+        vector<int> ans(n, 0); // 既是返回值，也充当我们的"跳跃表"
+
+        for (int i = n - 2; i >= 0; i--) {
+            int j = i + 1;
+            // 利用已经算好的 ans[j] 进行向右跳跃查找
+            while (temperatures[i] >= temperatures[j]) {
+                if (ans[j] == 0) { // 如果 j 后面没有更高的了，说明 i 后面也不会有
+                    j = i; 
+                    break;
+                }
+                j += ans[j]; // 关键：直接跳过不可能的区间
+            }
+            if (j != i) {
+                ans[i] = j - i;
+            }
+        }
+        return ans;
+    }
+};
+
+
+
+/*
     // Runtime 11 ms Beats 94.69%
     // Memory 102.76 MB Beats 91.31%
 public:
@@ -20,7 +53,7 @@ public:
             st.push(i);
         }
         return ans;
-
+*/
 
 /* passed. but should not have stored the value of temp! and gap! it's in input vector!
 include deque not stack (forgot std::stack exists..)
