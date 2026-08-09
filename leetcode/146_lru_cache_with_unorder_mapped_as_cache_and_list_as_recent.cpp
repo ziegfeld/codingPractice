@@ -17,14 +17,14 @@ The functions get and put must each run in O(1) average time complexity.
  */
 
 #include <unordered_map>
-#include <vector>
-#include <queue>
+// #include <vector>
+// #include <queue>
 
 class LRUCache {
     int capacity;
     std::list<int> recent; //recent[i] = key - front() is most recently used; back() is lru. it's like an "age fifo" with random access(for erase only)
     std::unordered_map<int, int> cache; // cache[key_aka_tag] = raw_data_value;
-    std::unordered_map<int, std::list<int>::iterator> pos; // pos[key_aka_tag] = iter of this in recent list (a map for age).
+    std::unordered_map<int, std::list<int>::iterator> pos; // pos[key_aka_tag] = iter of this in recent list (the container for age).
 public:
     LRUCache(int capacity) : capacity(capacity) {}
 
